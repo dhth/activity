@@ -1,0 +1,54 @@
+name: deploy
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  pages: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          repository: 'dhth/ghlog'
+      - name: Install toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Install ghlog
+        run: cargo install --path . --profile dev
+      - name: Run ghlog
+        env:
+          GHLOG_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ghlog run dhth \
+            --limit 100 \
+            --format html \
+            > /tmp/activity.html
+      - name: Check if results should be published
+        id: check-publish
+        run: |
+          echo "publish=$(./.github/scripts/should-publish-results.sh /tmp/activity.html)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v6
+        if: steps.check-publish.outputs.publish == '1'
+      - name: Prepare Pages artifact
+        if: steps.check-publish.outputs.publish == '1'
+        run: |
+          mkdir -p dist
+          cp /tmp/activity.html dist/index.html
+      - name: Setup Pages
+        if: steps.check-publish.outputs.publish == '1'
+        uses: actions/configure-pages@v6
+      - name: Upload artifact
+        if: steps.check-publish.outputs.publish == '1'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: "dist"
+      - name: Deploy to GitHub Pages
+        id: deployment
+        if: steps.check-publish.outputs.publish == '1'
+        uses: actions/deploy-pages@v5
