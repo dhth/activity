@@ -26,7 +26,7 @@ jobs:
           GHLOG_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ghlog run dhth \
-            --limit 100 \
+            --limit 300 \
             --format html \
             > /tmp/activity.html
       - uses: actions/checkout@v6
