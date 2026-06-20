@@ -14,7 +14,7 @@ jobs:
   run:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.3
         with:
           repository: 'dhth/ghlog'
       - name: Install toolchain
@@ -29,7 +29,7 @@ jobs:
             --limit 300 \
             --format html \
             > /tmp/activity.html
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.3
       - name: Check if results should be published
         id: check-publish
         run: |
